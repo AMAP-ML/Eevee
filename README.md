@@ -28,6 +28,10 @@
 
 
 </br>
+
+[![Paper](https://img.shields.io/badge/arXiv-2507.19946-b31b1b?logo=arxiv&logoColor=white)](https://arxiv.org/abs/2511.18957)
+
+
 </br>
 The open-sourcing of the dataset is currently undergoing the company's data disclosure process. It is expected to be completed this week.
 
