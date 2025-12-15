@@ -46,7 +46,7 @@
 export HF_ENDPOINT=https://hf-mirror.com
 ```
 
-2. Downloads the specified snapshot from Huggingface and saves it to the local data directory.
+2. Downloads the snapshot from Huggingface and saves it to the local data directory.
 ```python
 from huggingface_hub import snapshot_download
 snapshot_download(
@@ -63,8 +63,55 @@ cat Eevee.zip.part* > Eevee.zip
 unzip Eevee.zip -d ./Eevee
 ```
 
+##  
+
+As illustrated in ./Eevee, the following data should be provided.
+
+```
+|-- dresses
+|   |-- 00030
+|   |   |-- garment_caption.txt
+|   |   |-- garment_detail.png
+|   |   |-- garment_line.png
+|   |   |-- garment_mask.png
+|   |   |-- garment.png
+|   |   |-- person_agnostic.png
+|   |   |-- person_mask.png
+|   |   |-- person.png
+|   |   |-- video_0_agnostic_sam.mp4
+|   |   |-- video_0_agnostic.mp4
+|   |   |-- video_0_densepose.mp4
+|   |   |-- video_0_mask.mp4
+|   |   |-- video_0.mp4
+|   |   |-- video_1_agnostic_sam.mp4
+|   |   |-- video_1_agnostic.mp4
+|   |   |-- video_1_densepose.mp4
+|   |   |-- video_1_mask.mp4
+|   |   |-- video_1.mp4
+|   |-- 00032
+|   ...
+|-- lower_body
+|   |-- 00003
+|   |-- 00006
+|   ...
+|-- upper_bdoy
+|   |-- 00000
+|   |-- 00001
+|   ...
+|   dresses_test.csv
+|   dresses_train.csv
+|   lower_test.csv
+|   lower_train.csv
+|   upper_test.csv
+|   upper_train.csv
+```
+
+
 
 ## Citation
+
+If you find this work useful for your research, please cite our paper:
+
 ```
 @article{zeng2025eevee,
   title={Eevee: Towards Close-up High-resolution Video-based Virtual Try-on},
