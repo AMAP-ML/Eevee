@@ -41,19 +41,28 @@
 
 ## Dataset Access
 
+1. Sets the environment variable to point to a mirror site for faster and more stable Hugging Face connections.
 ```bash
 export HF_ENDPOINT=https://hf-mirror.com
 ```
 
+2. Downloads the specified snapshot from Huggingface and saves it to the local data directory.
 ```python
-from modelscope.hub.snapshot_download import snapshot_download
-model_dir = snapshot_download('JianhaoZeng/Eevee', cache_dir='./data')
+from huggingface_hub import snapshot_download
+snapshot_download(
+    repo_id="JianhaoZeng/Eevee",
+    local_dir="./data",
+    repo_type="model"
+)
 ```
 
+3. Merges the split multi-part files into a single zip archive and extracts the contents.
 ```bash
 cd ./data
 cat Eevee.zip.part* > Eevee.zip
+unzip Eevee.zip -d ./Eevee
 ```
+
 
 ## Citation
 ```
