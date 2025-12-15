@@ -41,7 +41,6 @@
 
 ## Dataset Access
 
-You can easily load the dataset with one line of code:
 ```bash
 export HF_ENDPOINT=https://hf-mirror.com
 ```
