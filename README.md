@@ -63,7 +63,7 @@ cat Eevee.zip.part* > Eevee.zip
 unzip Eevee.zip -d ./Eevee
 ```
 
-##  
+##  Data Organization
 
 As illustrated in ./Eevee, the following data should be provided.
 
@@ -106,7 +106,9 @@ As illustrated in ./Eevee, the following data should be provided.
 |   upper_train.csv
 ```
 
+## Contact
 
+If you have any questions, please reach out via email at jh_zeng@tju.edu.cn
 
 ## Citation
 
