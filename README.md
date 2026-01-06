@@ -23,17 +23,21 @@
 <div>
     <sup>3</sup>Shenzhen Institutes of Advanced Technology, Chinese Academy of Sciences
 </div>
-    <img src="./assets/Eevee.jpg" style="width:20%;">
+<br>
+
+
+
+  <img src="./assets/Eevee.jpg" style="width:20%;">
 </div>
 
 
 
 </br>
 
-
-
 [![Arxiv](https://img.shields.io/badge/arXiv-2507.19946-b31b1b?logo=arxiv&logoColor=white)](https://arxiv.org/abs/2511.18957)
 [![Hugging Face Datasets](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Datasets-blue)](https://huggingface.co/JianhaoZeng/Eevee)
+
+
 
 ## Abstract
 
