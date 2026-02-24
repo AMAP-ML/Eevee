@@ -86,28 +86,28 @@ def save_video(frames, save_path, fps, quality=9, ffmpeg_params=None):
 pipe = EeveePipeline.from_pretrained(
     torch_dtype = torch.bfloat16,
     device = "cuda",
-    vae_model_path = "/mnt/xmap_nas_ml/zengjianhao/DiffSynth/models/Wan-AI/Wan2.1-T2V-1.3B/Wan2.1_VAE.pth",
-    text_encoder_model_path = "/mnt/xmap_nas_ml/zengjianhao/DiffSynth/models/Wan-AI/Wan2.1-T2V-1.3B/models_t5_umt5-xxl-enc-bf16.pth",
+    vae_model_path = "./checkpoints/Wan2.1-VACE-14B/Wan2.1_VAE.pth",
+    text_encoder_model_path = "./checkpoints/Wan2.1-VACE-14B/models_t5_umt5-xxl-enc-bf16.pth",
     dit_model_path = [
-        "/mnt/xmap_nas_ml/zengjianhao/DiffSynth/models/Wan-AI/Wan2.1-VACE-14B/diffusion_pytorch_model-00001-of-00007.safetensors",
-        "/mnt/xmap_nas_ml/zengjianhao/DiffSynth/models/Wan-AI/Wan2.1-VACE-14B/diffusion_pytorch_model-00002-of-00007.safetensors",
-        "/mnt/xmap_nas_ml/zengjianhao/DiffSynth/models/Wan-AI/Wan2.1-VACE-14B/diffusion_pytorch_model-00003-of-00007.safetensors",
-        "/mnt/xmap_nas_ml/zengjianhao/DiffSynth/models/Wan-AI/Wan2.1-VACE-14B/diffusion_pytorch_model-00004-of-00007.safetensors",
-        "/mnt/xmap_nas_ml/zengjianhao/DiffSynth/models/Wan-AI/Wan2.1-VACE-14B/diffusion_pytorch_model-00005-of-00007.safetensors",
-        "/mnt/xmap_nas_ml/zengjianhao/DiffSynth/models/Wan-AI/Wan2.1-VACE-14B/diffusion_pytorch_model-00006-of-00007.safetensors",
-        "/mnt/xmap_nas_ml/zengjianhao/DiffSynth/models/Wan-AI/Wan2.1-VACE-14B/diffusion_pytorch_model-00007-of-00007.safetensors",
+        "./checkpoints/Wan2.1-VACE-14B/diffusion_pytorch_model-00001-of-00007.safetensors",
+        "./checkpoints/Wan2.1-VACE-14B/diffusion_pytorch_model-00002-of-00007.safetensors",
+        "./checkpoints/Wan2.1-VACE-14B/diffusion_pytorch_model-00003-of-00007.safetensors",
+        "./checkpoints/Wan2.1-VACE-14B/diffusion_pytorch_model-00004-of-00007.safetensors",
+        "./checkpoints/Wan2.1-VACE-14B/diffusion_pytorch_model-00005-of-00007.safetensors",
+        "./checkpoints/Wan2.1-VACE-14B/diffusion_pytorch_model-00006-of-00007.safetensors",
+        "./checkpoints/Wan2.1-VACE-14B/diffusion_pytorch_model-00007-of-00007.safetensors",
     ],
-    tokenizer_path = "/mnt/xmap_nas_ml/zengjianhao/DiffSynth/models/Wan-AI/Wan2.1-T2V-1.3B/google/umt5-xxl",
+    tokenizer_path = "./checkpoints/Wan2.1-T2V-1.3B/google/umt5-xxl",
 )
-# pipe.load_lora(pipe.vace, "", alpha=1)
+pipe.load_lora(pipe.vace, "./checkpoints/Eevee_v0", alpha=1)
 
 
-video = VideoData("/mnt/xmap_nas_ml/zengjianhao/Data/Eevee4/dresses/00137/video_0_agnostic.mp4", height=1088, width=816)
+video = VideoData("./data/Eevee/dresses/00137/video_0_agnostic.mp4", height=1088, width=816)
 video = [video[i] for i in range(49)]
-video_mask = VideoData("/mnt/xmap_nas_ml/zengjianhao/Data/Eevee4/dresses/00137/video_0_agnostic_mask.mp4", height=1088, width=816)
+video_mask = VideoData("./data/Eevee/dresses/00137/video_0_agnostic_mask.mp4", height=1088, width=816)
 video_mask = [video_mask[i] for i in range(49)]
 
-vace_reference_image=Image.open("/mnt/xmap_nas_ml/zengjianhao/Data/Eevee4/dresses/00137/in.png").resize((816, 1088))
+vace_reference_image=Image.open("./data/Eevee/dresses/00137/in.png").resize((816, 1088))
 
 
 video = pipe(

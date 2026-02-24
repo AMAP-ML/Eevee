@@ -1,3 +1,3 @@
-export PYTHONPATH="${PYTHONPATH}:/mnt/xmap_nas_ml/zengjianhao/Eevee"
+export PYTHONPATH="${PYTHONPATH}:./"
 
-CUDA_VISIBLE_DEVICES=6 python test/test.py 
+CUDA_VISIBLE_DEVICES=0 python ./test/test.py 
