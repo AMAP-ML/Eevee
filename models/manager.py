@@ -157,8 +157,8 @@ class ModelManager:
         if len(fetched_models) == 0:
             print(f"No {model_name} models available.")
             return None
-        if len(fetched_models) == 1:
-            model = fetched_models[0]
-        return model
-
-        
+        if len(fetched_models) > 1:
+            raise ValueError(
+                f"Expected one {model_name} model, but found {len(fetched_models)}."
+            )
+        return fetched_models[0]

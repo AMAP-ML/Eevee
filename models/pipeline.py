@@ -232,6 +232,7 @@ class EeveePipeline(torch.nn.Module):
             "height": height, 
             "width": width, 
             "num_frames": num_frames,
+            "seed": seed,
             "cfg_scale": cfg_scale, "cfg_merge": cfg_merge,
             "tiled": tiled, "tile_size": tile_size, "tile_stride": tile_stride,
             "rand_device": self.device,
@@ -275,7 +276,11 @@ class EeveePipeline(torch.nn.Module):
     def noise_initializer(self, inputs):
         length = (inputs["num_frames"] - 1) // 4 + 1 + 1
         shape = (1, self.vae.model.z_dim, length, inputs["height"] // self.vae.upsampling_factor, inputs["width"] // self.vae.upsampling_factor)
-        noise = self.generate_noise(shape, seed=None, rand_device=inputs["rand_device"])
+        noise = self.generate_noise(
+            shape,
+            seed=inputs.get("seed"),
+            rand_device=inputs["rand_device"],
+        )
         noise = torch.concat((noise[:, :, -1:], noise[:, :, :-1]), dim=2)
         inputs["noise"] = noise
         return inputs
@@ -292,7 +297,7 @@ class EeveePipeline(torch.nn.Module):
             return inputs
         self.load_models_to_device(["vae"])
         input_video = self.preprocess_video(inputs["input_video"])
-        input_latents = self.vae.encode(input_video, device=self.device, tiled=inputs["tiled"], tile_size=None, tile_stride=None).to(dtype=self.torch_dtype, device=self.pipe.device)
+        input_latents = self.vae.encode(input_video, device=self.device, tiled=inputs["tiled"], tile_size=None, tile_stride=None).to(dtype=self.torch_dtype, device=self.device)
         vace_reference_image = [inputs["vace_reference_image"]]
         vace_reference_image = self.preprocess_video(vace_reference_image)
         vace_reference_latents = self.vae.encode(vace_reference_image, device=self.device).to(dtype=self.torch_dtype, device=self.device)
@@ -418,20 +423,48 @@ class GeneralLoRALoader:
     def load(self, model: torch.nn.Module, state_dict_lora, alpha=1.0):
         updated_num = 0
         lora_name_dict = self.get_name_dict(state_dict_lora)
-        for name, module in model.named_modules():
-            if name in lora_name_dict:
-                weight_up = state_dict_lora[lora_name_dict[name][0]].to(device=self.device, dtype=self.torch_dtype)
-                weight_down = state_dict_lora[lora_name_dict[name][1]].to(device=self.device, dtype=self.torch_dtype)
-                if len(weight_up.shape) == 4:
-                    weight_up = weight_up.squeeze(3).squeeze(2)
-                    weight_down = weight_down.squeeze(3).squeeze(2)
-                    weight_lora = alpha * torch.mm(weight_up, weight_down).unsqueeze(2).unsqueeze(3)
-                else:
-                    weight_lora = alpha * torch.mm(weight_up, weight_down)
-                state_dict = module.state_dict()
-                state_dict["weight"] = state_dict["weight"].to(device=self.device, dtype=self.torch_dtype) + weight_lora
-                module.load_state_dict(state_dict)
-                updated_num += 1
+        model_modules = dict(model.named_modules())
+        unmatched_names = []
+
+        for lora_name, (weight_up_name, weight_down_name) in lora_name_dict.items():
+            # Training checkpoints can include wrapper prefixes such as
+            # ``pipe.vace.``. In inference, ``model`` is already pipe.vace, so
+            # progressively remove those prefixes until the module name matches.
+            name_parts = lora_name.split(".")
+            module_name = next(
+                (
+                    ".".join(name_parts[prefix_length:])
+                    for prefix_length in range(len(name_parts))
+                    if ".".join(name_parts[prefix_length:]) in model_modules
+                ),
+                None,
+            )
+            if module_name is None:
+                unmatched_names.append(lora_name)
+                continue
+
+            module = model_modules[module_name]
+            weight_up = state_dict_lora[weight_up_name].to(device=self.device, dtype=self.torch_dtype)
+            weight_down = state_dict_lora[weight_down_name].to(device=self.device, dtype=self.torch_dtype)
+            if len(weight_up.shape) == 4:
+                weight_up = weight_up.squeeze(3).squeeze(2)
+                weight_down = weight_down.squeeze(3).squeeze(2)
+                weight_lora = alpha * torch.mm(weight_up, weight_down).unsqueeze(2).unsqueeze(3)
+            else:
+                weight_lora = alpha * torch.mm(weight_up, weight_down)
+            state_dict = module.state_dict()
+            state_dict["weight"] = state_dict["weight"].to(device=self.device, dtype=self.torch_dtype) + weight_lora
+            module.load_state_dict(state_dict)
+            updated_num += 1
+
+        if unmatched_names:
+            examples = ", ".join(unmatched_names[:3])
+            raise ValueError(
+                f"Failed to match {len(unmatched_names)} LoRA modules to the base model. "
+                f"Examples: {examples}"
+            )
+        if updated_num == 0:
+            raise ValueError("No LoRA tensors were found in the checkpoint.")
         print(f"{updated_num} tensors are updated by LoRA.")
 
 

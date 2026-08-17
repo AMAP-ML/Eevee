@@ -3,22 +3,22 @@ import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Training parameters")
-    parser.add_argument("--dresses_dataset_base_path", type=str, default="", required=True, help="Base path of the dresses dataset.")
-    parser.add_argument("--dresses_dataset_metadata_path", type=str, default=None, help="Path to the metadata file of the dresses dataset.")
-    parser.add_argument("--lower_dataset_base_path", type=str, default="", required=True, help="Base path of the lower body dataset.")
-    parser.add_argument("--lower_dataset_metadata_path", type=str, default=None, help="Path to the metadata file of the lower body dataset.")
-    parser.add_argument("--upper_dataset_base_path", type=str, default="", required=True, help="Base path of the upper body dataset.")
-    parser.add_argument("--upper_dataset_metadata_path", type=str, default=None, help="Path to the metadata file of the upper body dataset.")
-    parser.add_argument("--height", type=int, default=None, help="Height of images or videos. Leave `height` and `width` empty to enable dynamic resolution.")
-    parser.add_argument("--width", type=int, default=None, help="Width of images or videos. Leave `height` and `width` empty to enable dynamic resolution.")
+    parser.add_argument("--dresses_dataset_base_path", type=str, required=True, help="Base path of the dresses dataset.")
+    parser.add_argument("--dresses_dataset_metadata_path", type=str, required=True, help="Path to the metadata file of the dresses dataset.")
+    parser.add_argument("--lower_dataset_base_path", type=str, required=True, help="Base path of the lower body dataset.")
+    parser.add_argument("--lower_dataset_metadata_path", type=str, required=True, help="Path to the metadata file of the lower body dataset.")
+    parser.add_argument("--upper_dataset_base_path", type=str, required=True, help="Base path of the upper body dataset.")
+    parser.add_argument("--upper_dataset_metadata_path", type=str, required=True, help="Path to the metadata file of the upper body dataset.")
+    parser.add_argument("--height", type=int, required=True, help="Height of images and videos.")
+    parser.add_argument("--width", type=int, required=True, help="Width of images and videos.")
     parser.add_argument("--num_frames", type=int, default=49, help="Number of frames per video. Frames are sampled from the video prefix.")
 
-    parser.add_argument("--vae_model_path", type=str, default=None, help="Path of VAE model.")
-    parser.add_argument("--text_encoder_model_path", type=str, default=None, help="Path of Text Encoder model.")
-    parser.add_argument("--dit_model_path", type=str, nargs='+', default=None, help="Paths of DIT model.")
-    parser.add_argument("--tokenizer_path", type=str, default=None, help="Path of Tokenizer model.")
+    parser.add_argument("--vae_model_path", type=str, required=True, help="Path of VAE model.")
+    parser.add_argument("--text_encoder_model_path", type=str, required=True, help="Path of Text Encoder model.")
+    parser.add_argument("--dit_model_path", type=str, nargs='+', required=True, help="Paths of DIT model.")
+    parser.add_argument("--tokenizer_path", type=str, required=True, help="Path of Tokenizer model.")
     
-    parser.add_argument("--lora_base_model", type=str, default=None, help="Which model LoRA is added to.")
+    parser.add_argument("--lora_base_model", type=str, choices=("dit", "vace"), default="vace", help="Which model LoRA is added to.")
     parser.add_argument("--lora_target_modules", type=str, default="q,k,v,o,ffn.0,ffn.2", help="Which layers LoRA is added to.")
     parser.add_argument("--lora_rank", type=int, default=32, help="Rank of LoRA.")
 
@@ -26,7 +26,7 @@ def parse_args():
     parser.add_argument("--min_timestep_boundary", type=float, default=0.0, help="Min timestep boundary (for mixed models, e.g., Wan-AI/Wan2.2-I2V-A14B).")
 
     parser.add_argument("--output_path", type=str, default="./models", help="Output save path.")
-    parser.add_argument("--remove_prefix_in_ckpt", type=str, default="pipe.dit.", help="Remove prefix in ckpt.")
+    parser.add_argument("--remove_prefix_in_ckpt", type=str, default=None, help="Prefix to remove from saved LoRA keys. Defaults to the selected LoRA base model prefix.")
 
     parser.add_argument("--learning_rate", type=float, default=1e-4, help="Learning rate.")
     parser.add_argument("--weight_decay", type=float, default=0.01, help="Weight decay.")

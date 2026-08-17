@@ -36,19 +36,19 @@ class EeveeDataset(torch.utils.data.Dataset):
     def __getitem__(self, data_id):
         data = self.data[data_id % len(self.data)].copy()
 
-        caption_path = os.path.join(data["path"], "caption.txt")
-        vace_reference_image_path = os.path.join(data["path"], "in.png")        
+        caption_path = os.path.join(data["path"], "garment_caption.txt")
+        vace_reference_image_path = os.path.join(data["path"], "garment_detail.png")
         if random.random()<0.5:
             vace_video_path = os.path.join(data["path"], "video_0_agnostic.mp4")
-            vace_video_mask_path = os.path.join(data["path"], "video_0_agnostic_mask.mp4")
+            vace_video_mask_path = os.path.join(data["path"], "video_0_mask.mp4")
             video_path = os.path.join(data["path"], "video_0.mp4")
         else:
             vace_video_path = os.path.join(data["path"], "video_1_agnostic.mp4")
-            vace_video_mask_path = os.path.join(data["path"], "video_1_agnostic_mask.mp4")
+            vace_video_mask_path = os.path.join(data["path"], "video_1_mask.mp4")
             video_path = os.path.join(data["path"], "video_1.mp4")
 
         with open(caption_path, 'r', encoding='utf-8') as file:
-            data["prompt"] = "Model is wearing " + file.read()
+            data["prompt"] = "Model is wearing " + file.read().strip()
         data["vace_reference_image"] = self.process_image(vace_reference_image_path)
         data["video"] = self.process_video(video_path)
         data["vace_video_mask"] = self.process_video(vace_video_mask_path)
@@ -79,12 +79,14 @@ class EeveeDataset(torch.utils.data.Dataset):
     def process_video(self, file_path):
         reader = imageio.get_reader(file_path)
         frames = []
-        for frame_id in range(self.num_frames):
-            frame = reader.get_data(frame_id)
-            frame = Image.fromarray(frame)
-            frame = self.image_crop_and_resize(frame)
-            frames.append(frame)
-        reader.close()
+        try:
+            for frame_id in range(self.num_frames):
+                frame = reader.get_data(frame_id)
+                frame = Image.fromarray(frame).convert("RGB")
+                frame = self.image_crop_and_resize(frame)
+                frames.append(frame)
+        finally:
+            reader.close()
         return frames
 
 
@@ -118,4 +120,3 @@ if __name__ == "__main__":
     print(len(data["video"]))
     print(data["video"][0].size)
     print(data["prompt"])
-    

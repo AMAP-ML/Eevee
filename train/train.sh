@@ -1,7 +1,28 @@
-export PYTHONPATH="${PYTHONPATH}:./"
+#!/usr/bin/env bash
+set -euo pipefail
 
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${REPO_ROOT}"
 
-CUDA_VISIBLE_DEVICES=1,2,3,4,5,6,7 nohup accelerate launch --num_processes=8 train/train.py \
+export PYTHONPATH="${REPO_ROOT}${PYTHONPATH:+:${PYTHONPATH}}"
+export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0,1,2,3,4,5,6,7}"
+
+NUM_PROCESSES="${NUM_PROCESSES:-8}"
+SAVE_STEPS="${SAVE_STEPS:-1000}"
+NUM_EPOCHS="${NUM_EPOCHS:-100}"
+OUTPUT_PATH="${OUTPUT_PATH:-./checkpoints/Eevee_v0}"
+
+IFS=',' read -r -a VISIBLE_GPUS <<< "${CUDA_VISIBLE_DEVICES}"
+if ! [[ "${NUM_PROCESSES}" =~ ^[1-9][0-9]*$ ]]; then
+  echo "NUM_PROCESSES must be a positive integer." >&2
+  exit 1
+fi
+if (( NUM_PROCESSES > ${#VISIBLE_GPUS[@]} )); then
+  echo "NUM_PROCESSES (${NUM_PROCESSES}) exceeds the number of visible GPUs (${#VISIBLE_GPUS[@]})." >&2
+  exit 1
+fi
+
+accelerate launch --num_processes="${NUM_PROCESSES}" train/train.py \
   --dresses_dataset_base_path ./data/Eevee/dresses \
   --dresses_dataset_metadata_path ./data/Eevee/dresses_train.csv \
   --lower_dataset_base_path ./data/Eevee/lower_body \
@@ -21,11 +42,13 @@ CUDA_VISIBLE_DEVICES=1,2,3,4,5,6,7 nohup accelerate launch --num_processes=8 tra
     "./checkpoints/Wan2.1-VACE-14B/diffusion_pytorch_model-00005-of-00007.safetensors" \
     "./checkpoints/Wan2.1-VACE-14B/diffusion_pytorch_model-00006-of-00007.safetensors" \
     "./checkpoints/Wan2.1-VACE-14B/diffusion_pytorch_model-00007-of-00007.safetensors" \
-  --tokenizer_path "./checkpoints/Wan2.1-T2V-1.3B/google/umt5-xxl" \
+  --tokenizer_path "./checkpoints/Wan2.1-VACE-14B/google/umt5-xxl" \
   --lora_base_model "vace" \
   --lora_target_modules "q,k,v,o,ffn.0,ffn.2" \
   --lora_rank 32 \
-  --output_path "./checkpoints/Eevee_v0" \
+  --output_path "${OUTPUT_PATH}" \
+  --remove_prefix_in_ckpt "pipe.vace." \
   --learning_rate 1e-5 \
-  --save_steps 1 \
-  --num_epochs 100 > log.out 2>&1 & 
+  --save_steps "${SAVE_STEPS}" \
+  --num_epochs "${NUM_EPOCHS}" \
+  "$@"

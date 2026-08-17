@@ -73,7 +73,7 @@ pip install flash_attn-2.7.4.post1+cu12torch2.5cxx11abiFALSE-cp310-cp310-linux_x
 
 2. Pre-trained weights
 
-Eevee requires the Wan2.1-VACE checkpoints for training. Please download the weights as follows:
+Eevee requires the Wan2.1-VACE checkpoints for training and testing. Please download the weights as follows:
 
 ```bash
 # 1. Sets the environment variable to point to a mirror site for faster and more stable Hugging Face connections (Optionally)
@@ -123,6 +123,8 @@ Eevee
 |   |   |-- diffusion_pytorch_model-00007-of-00007.safetensors
 |   |   |-- models_t5_umt5-xxl-enc-bf16.pth
 |   |   ...
+|   |-- Eevee/
+|   |   |-- step-3000.safetensors
 |-- data/ 
 |   |-- Eevee/
 |   |   |-- dresses/
@@ -150,7 +152,7 @@ Eevee
 |   |   |-- lower_body/
 |   |   |   |-- 00003/
 |   |   |   ...
-|   |   |-- upper_bdoy/
+|   |   |-- upper_body/
 |   |   |   |-- 00000/
 |   |   |   ...
 |   |   |-- dresses_test.csv
@@ -177,14 +179,71 @@ Eevee
 
 ## Training
 
+The training script consumes the public dataset file names shown above and loads the tokenizer from the Wan2.1-VACE-14B checkpoint. By default it launches eight processes on GPUs `0` through `7`, saves a LoRA checkpoint every 1,000 steps, and writes checkpoints to `checkpoints/Eevee_v0`:
+
 ```bash
 bash train/train.sh
 ```
+
+The command runs in the foreground so initialization or training errors are returned directly. Configure the GPU list, process count, checkpoint interval, epoch count, or output directory with environment variables. For example, to launch one process on GPU 0:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 NUM_PROCESSES=1 SAVE_STEPS=1000 \
+  bash train/train.sh
+```
+
+Additional `train.py` arguments can be appended to the command. To run in the background explicitly, redirect the launcher yourself:
+
+```bash
+nohup bash train/train.sh > train.log 2>&1 &
+```
+
 ## Testing
+
+Testing requires both the base [Wan2.1-VACE-14B checkpoint](https://huggingface.co/Wan-AI/Wan2.1-VACE-14B) downloaded in the Preparation section and the [Eevee LoRA checkpoint](https://huggingface.co/JianhaoZeng/Eevee/blob/main/step-3000.safetensors). Download the LoRA without downloading the large dataset files from the same Hugging Face repository:
+
+```bash
+# Optional: use a Hugging Face mirror
+export HF_ENDPOINT=https://hf-mirror.com
+
+python - <<'PY'
+from huggingface_hub import hf_hub_download
+
+hf_hub_download(
+    repo_id="JianhaoZeng/Eevee",
+    filename="step-3000.safetensors",
+    local_dir="./checkpoints/Eevee",
+)
+PY
+```
+
+The default test case uses the files below from `data/Eevee/dresses/00030`:
+
+- `garment_caption.txt` as the text prompt;
+- `garment_detail.png` as the VACE reference image;
+- `video_0_agnostic.mp4` as the conditioning video;
+- `video_0_mask.mp4` as the editable-region mask.
+
+From the repository root, run:
 
 ```bash
 bash test/test.sh
 ```
+
+The generated video is saved to `outputs/eevee_00030_video_0.mp4`. To test another sample or the close-up video, pass arguments through `test.sh`:
+
+```bash
+bash test/test.sh \
+  --case-dir ./data/Eevee/dresses/00137 \
+  --video-id 1 \
+  --output-path ./outputs/eevee_00137_video_1.mp4
+```
+
+Run `python test/test.py --help` to see all options, including custom checkpoint, LoRA, reference-image, resolution, frame-count, and output paths. The script checks that all required files exist before loading the models.
+
+When the published checkpoint is loaded successfully, the script reports `80 tensors are updated by LoRA.` before inference starts.
+
+The launcher uses one CUDA device. Select a different GPU when needed, for example with `CUDA_VISIBLE_DEVICES=1 bash test/test.sh`. Full inference was not designed as a CPU test and requires enough GPU memory for Wan2.1-VACE-14B.
 
 ## Data Description
 
