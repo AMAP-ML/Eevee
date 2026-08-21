@@ -357,10 +357,11 @@ If you have any questions, please reach out via email at jh_zeng@tju.edu.cn
 If you find this work useful for your research, please cite our paper:
 
 ```
-@article{zeng2025eevee,
-  title={Eevee: Towards Close-up High-resolution Video-based Virtual Try-on},
+@inproceedings{zeng2026eevee,
+  title={Eevee: Towards close-up high-resolution video-based virtual try-on},
   author={Zeng, Jianhao and Bai, Yancheng and Chen, Ruidong and Zhang, Xuanpu and Sun, Lei and Jin, Dongyang and Xu, Ryan and Zhang, Nannan and Song, Dan and Chu, Xiangxiang},
-  journal={arXiv preprint arXiv:2511.18957},
-  year={2025}
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  pages={4614--4624},
+  year={2026}
 }
 ```
